@@ -14,7 +14,9 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useState } from "react";
-import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
@@ -22,7 +24,8 @@ const defaultTheme = createTheme();
 
 export default function SignIn() {
   const [details, setDetails] = useState({ username: "", password: "" });
-  const [cookie, setCookie] = useCookies(['user']);
+  const navigate = useNavigate();
+  //const [cookie, setCookie] = useCookies(['user']);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -31,8 +34,24 @@ export default function SignIn() {
         username: details.username,
         password: details.password,
       });
-      setCookie('token',res.data.token,{path:'/'});
-      console.log(res.data.token);
+      Cookies.set("token", res.data.token);
+      Cookies.set("userId", res.data.user.id);
+
+      const decoded = jwtDecode(res.data.token);
+
+      if (
+        decoded[
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ] == "User"
+      ) {
+        navigate("/");
+      } else if (
+        decoded[
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ] == "Admin"
+      ) {
+        navigate("/admin");
+      }
     } catch (err) {
       if (err.response.status === 401)
         console.log("Unautherized-" + err.response.status);

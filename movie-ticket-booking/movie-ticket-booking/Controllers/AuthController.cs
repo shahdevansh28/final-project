@@ -47,6 +47,15 @@ namespace movie_ticket_booking.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new Models.DTO.Response() { Status = "Error", Message = "User creatiion Failed" });
             }
+
+            if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
+                await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+            if (!await roleManager.RoleExistsAsync(UserRoles.User))
+                await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+
+            if (await roleManager.RoleExistsAsync(UserRoles.User))
+                await userManager.AddToRoleAsync(user,UserRoles.User);
+
             return Ok(new Models.DTO.Response() { Status = "Succes", Message = "User created Succesfully" });
         }
 
@@ -63,6 +72,7 @@ namespace movie_ticket_booking.Controllers
                     new Claim(ClaimTypes.Name,user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
                 };
+
                 foreach (var userRole in userRoles)
                 {
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));

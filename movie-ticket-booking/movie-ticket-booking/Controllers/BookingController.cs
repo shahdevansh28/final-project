@@ -19,6 +19,7 @@ namespace movie_ticket_booking.Controllers
         {
             _applicationDbContext = applicationDbContext;
         }
+
         [Authorize]
         [Route("api/get-all-booking")]
         [HttpGet]
@@ -26,7 +27,6 @@ namespace movie_ticket_booking.Controllers
         {
             return await _applicationDbContext.Bookings.ToListAsync();
         }
-
 
         [Route("api/get-ticket")]
         [HttpGet]
@@ -37,9 +37,17 @@ namespace movie_ticket_booking.Controllers
         }
 
         [Authorize]
+        [Route("api/getBookingByUser")]
+        [HttpGet]
+        public async Task<ActionResult<List<Booking>>> GetBookingByUser(string userId)
+        {
+            return await _applicationDbContext.Bookings.Where(x => x.UserId == userId).ToListAsync();
+        }
+
+        [Authorize]
         [Route("api/book-ticket")]
         [HttpPost]
-        public async Task<ActionResult<Booking>> BookTicket(BookingDTO bookingDTO)
+        public async Task<ActionResult<Booking>> BookTicket(BookingDTO bookingDTO, string userId)
         {
             //Get All Seats based on current ShowTime
             var TotalAvailableSeats =_applicationDbContext.Seats.Where(x => x.ShowTimeId == bookingDTO.showTimeId);
@@ -63,6 +71,7 @@ namespace movie_ticket_booking.Controllers
                         BookingDate = DateTime.Now,
                         SeatId = TotalAvailableSeats.Where(x => x.Row == seat.row && x.Number == seat.number).FirstOrDefault().Id,
                         ShowTimeId = bookingDTO.showTimeId,
+                        UserId = userId
                     };
 
                     _applicationDbContext.Bookings.Add(bookedTicket);
@@ -78,6 +87,5 @@ namespace movie_ticket_booking.Controllers
             return Ok("Seats are booked");
         }
 
-        
     }
 }

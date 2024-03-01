@@ -21,7 +21,9 @@ export default function MoviePost(props) {
   console.log(props.data.id);
 
   return (
-    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Card
+      sx={{ pt: "4", height: "100%", display: "flex", flexDirection: "column" }}
+    >
       <CardMedia
         component="div"
         sx={{

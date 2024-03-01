@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace movie_ticket_booking.Models
 {
@@ -12,7 +13,7 @@ namespace movie_ticket_booking.Models
         public Seat? Seat { get; set; }
         public long ShowTimeId { get; set; }
         public ShowTime? ShowTime { get; set; }
-        public long UserId { get; set; }
+        public string UserId { get; set; }
         public virtual User? User { get; set; }
     }
 }

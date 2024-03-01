@@ -172,10 +172,7 @@ namespace movie_ticket_booking.Migrations
                     b.Property<long>("ShowTimeId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UserId1")
+                    b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -184,7 +181,7 @@ namespace movie_ticket_booking.Migrations
 
                     b.HasIndex("ShowTimeId");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Bookings");
                 });
@@ -428,7 +425,7 @@ namespace movie_ticket_booking.Migrations
 
                     b.HasOne("movie_ticket_booking.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Seat");
 

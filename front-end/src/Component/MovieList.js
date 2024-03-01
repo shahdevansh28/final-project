@@ -21,7 +21,7 @@ import Container from "@mui/material/Container";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-export default function MovieList(props) {
+export default function MovieList() {
   const [details, setDetail] = useState([]);
   useEffect(() => {
     axios.get("https://localhost:44397/api/Movie").then((response) => {
@@ -30,25 +30,24 @@ export default function MovieList(props) {
     });
   }, []);
 
-  const defaultTheme = createTheme();
+  const defaultTheme = createTheme({
+    columnSpacing: 8,
+  });
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Container sx={{ py: 8 }} maxWidth="md">
-        <Grid container spacing={8}>
-          {details.map((detail) => (
-            <>
-              <Grid xs={12} sm={6} md={4}>
-                <MoviePost data={detail} />
-              </Grid>
-            </>
-          ))}
-        </Grid>
-      </Container>
-    </ThemeProvider>
-    // <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }} cols = {3}>
-    //   {details.map((detail,key) => {
-    //     return <MoviePost data = {detail}/>;
-    //   })}
-    // </List>
+    <>
+      <ThemeProvider theme={defaultTheme}>
+        <Container sx={{ py: 8 }} maxWidth="md">
+          <Grid container>
+            {details.map((detail) => (
+              <>
+                <Grid xs={12} sm={6} md={4}>
+                  <MoviePost data={detail} />
+                </Grid>
+              </>
+            ))}
+          </Grid>
+        </Container>
+      </ThemeProvider>
+    </>
   );
 }

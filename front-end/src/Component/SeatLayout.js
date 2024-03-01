@@ -15,7 +15,7 @@ export default function SeatLayout() {
 
   const queryParameters = new URLSearchParams(window.location.search);
   const id = queryParameters.get("showId");
-  Session.set("showTimeId",id);
+  Session.set("showTimeId", id);
 
   useEffect(() => {
     axios
@@ -29,17 +29,17 @@ export default function SeatLayout() {
   const sendData = (seat) => {
     console.log(seat.data.row);
     var obj = {
-      row : seat.data.row,
-      number : seat.data.number
-    }
-    setSeatData([...seatData,obj]);
+      row: seat.data.row,
+      number: seat.data.number,
+    };
+    setSeatData([...seatData, obj]);
   };
 
   console.log(seatData);
   const defaultTheme = createTheme();
 
   const onClick = () => {
-    Session.set("seatNumber",seatData);
+    Session.set("seatNumber", seatData);
     console.log(seatData);
   };
 

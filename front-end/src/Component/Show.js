@@ -23,7 +23,7 @@ export default function Show(props) {
         {props.data.map((data) => (
           <>
             <Typography variant="body2" color="text.secondary">
-              <Link to={`/setLayout?showId=${data.id}`}>
+              <Link to={`/seatLayout?showId=${data.id}`}>
                 <Button variant="outlined" sx={{ mt: 3, mb: 2 }}>
                   {new Date(data.startTime).toLocaleTimeString()}
                 </Button>

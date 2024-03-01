@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using movie_ticket_booking.Models;
@@ -43,7 +44,7 @@ namespace movie_ticket_booking.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Movie>> PostMovie(MovieDTO movie)
+        public async Task<ActionResult<Movie>> PostMovie(Movie movie)
         {
             if (_applicationDbContext.Movies == null)
             {

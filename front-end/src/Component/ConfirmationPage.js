@@ -13,61 +13,69 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
 import Session from "react-session-api";
+import Cookies from "js-cookie";
 
 export default function ConfirmationPage(props) {
-  const [details, setDetails] = useState();
+  const [details, setDetails] = useState("");
+  const id = Cookies.get("userId");
+  axios.interceptors.request.use(
+    (config) => {
+      config.headers.authorization = `Bearer ${Cookies.get("token")}`;
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
 
   console.log(Session);
-    const handleSubmit = async (event) => {
-      event.preventDefault();
-      try {
-        const res = await axios.post("https://localhost:44397/api/book-ticket", {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const res = await axios.post(
+        `https://localhost:44397/api/book-ticket?userId=${id}`,
+        {
           showTimeId: Session.get("showTimeId"),
           seatNumber: Session.get("seatNumber"),
-          bookingDate: Session.get("bookingDate")
-        });
-        console.log(res);
-        if(res.statusCode === 200){
-            alert(res.data);
+          bookingDate: Session.get("bookingDate"),
         }
-      } catch (err) {
-        
-          console.log(err);
+      );
+      setDetails(res);
+      console.log(res);
+      if (res.statusCode === 200) {
+        alert(res.data);
       }
-    };
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   return (
-    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <CardMedia
-        component="div"
-        sx={{
-          // 16:9
-          pt: "56.25%",
-        }}
-        image="https://source.unsplash.com/random?wallpapers"
-      />
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Typography gutterBottom variant="h5" component="h2"></Typography>
-        <Typography>
-          <CalendarMonthIcon fontSize="small" />
+    <>
+      <Card sx={{ height: "100%", flexDirection: "column" }}>
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Typography gutterBottom variant="h5" component="h2"></Typography>
+          <Typography>
+            <CalendarMonthIcon fontSize="small" />
 
-          <br />
-          <AccessTimeIcon fontSize="small" />
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <Link>
-          <Button
-            onClick = {handleSubmit}
-            variant="contained"
-            color="success"
-            fullWidth
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Confirm
-          </Button>
-        </Link>
-      </CardActions>
-    </Card>
+            <br />
+            <AccessTimeIcon fontSize="small" />
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Link>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              color="success"
+              fullWidth
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Confirm
+            </Button>
+          </Link>
+        </CardActions>
+      </Card>
+    </>
   );
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using movie_ticket_booking.Models;
+using movie_ticket_booking.Models.DTO;
 
 namespace movie_ticket_booking.Controllers
 {
@@ -34,6 +35,36 @@ namespace movie_ticket_booking.Controllers
             }
 
             return await _applicationDbContext.Seats.Where(e => e.ShowTimeId == showTimeId).ToListAsync();
+        }
+
+
+        [HttpPost]
+        [ActionName("add-seat")]
+        public async Task<ActionResult<IEnumerable<Seat>>> AddSeats(SeatDetailDTO seatDetail)
+        {
+            for(int i = 1; i <= seatDetail.TotalRow;i++)
+            {
+                for(int j = 1; j <= seatDetail.TotalCol; j++)
+                {
+                    var seatObj = new Seat()
+                    {
+                        Row = i,
+                        Number = j,
+                        ShowTimeId = seatDetail.ShowTimeID,
+                        IsAvailable = false
+                    };
+                    _applicationDbContext.Add(seatObj);
+                }
+            }
+            await _applicationDbContext.SaveChangesAsync();
+
+            return await _applicationDbContext.Seats.Where(e => e.ShowTimeId == seatDetail.ShowTimeID).ToListAsync();
+            /*if (_applicationDbContext.Seats == null)
+            {
+                return NotFound();
+            }
+
+            return await _applicationDbContext.Seats.Where(e => e.ShowTimeId == showTimeId).ToListAsync();*/
         }
 
     }

@@ -6,7 +6,6 @@ import { Button } from "@mui/material";
 export default function Seat(props) {
   const onClick = () => {
     props.sendData(props);
-    
   };
 
   return (

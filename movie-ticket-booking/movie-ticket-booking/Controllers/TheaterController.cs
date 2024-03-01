@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using movie_ticket_booking.Models;
 using movie_ticket_booking.Models.DTO;
+using System.Collections.Immutable;
 
 namespace movie_ticket_booking.Controllers
 {
@@ -15,6 +17,8 @@ namespace movie_ticket_booking.Controllers
         {
             _applicationDbContext = applicationDbContext;
         }
+    
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Theater>>> GetTheaters()
         {
@@ -24,7 +28,30 @@ namespace movie_ticket_booking.Controllers
             }
             return await _applicationDbContext.Theaters.ToListAsync();
         }
+        [Route("api/get-show-by-theater")]
+        [HttpGet] 
+        public async Task<ActionResult<IEnumerable<TheaterResponseDTO>>> GetShowByTheater()
+        {
+            var res = new List<TheaterResponseDTO>();
+            var theaterList = await _applicationDbContext.Theaters.ToListAsync();
 
+            foreach (var theater in theaterList)
+            {
+                var showListByTheater =  _applicationDbContext.ShowTimes.Where(t => t.TheaterId == theater.Id).ToList();
+
+                var obj = new TheaterResponseDTO()
+                {
+                    theater = theater,
+                    showTimes = showListByTheater
+                };
+
+                res.Add(obj);
+                
+            }
+            return res;
+        }
+
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<Theater>> GetTheater(long id)
         {

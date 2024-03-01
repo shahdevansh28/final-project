@@ -31,6 +31,7 @@ export default function ShowList(props) {
         .then((response) => {
           console.log(response.data);
           Session.set("bookingDate", d);
+          console.log(Session.get("bookingDate"));
           setDetail(response.data);
         });
     }, [date, setDate]);
