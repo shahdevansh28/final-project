@@ -6,7 +6,7 @@ import TableRow from "@mui/material/TableRow";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Chip, Stack } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Accordion from "@mui/material/Accordion";
 import AccordionActions from "@mui/material/AccordionActions";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -25,11 +25,15 @@ import {
   Grid,
   Checkbox,
 } from "@mui/material";
+import Swal from "sweetalert2";
 
 export default function Theater() {
   const [detail, setDetail] = useState([]);
   const [theaterData, setTheaterData] = useState({});
   const [open, setOpen] = React.useState(false);
+  //Validat form
+  const [nameError, setNameError] = useState("");
+  const [locationError, setLocationError] = useState("");
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -44,16 +48,44 @@ export default function Theater() {
   };
 
   const addTheater = async () => {
-    try {
-      const res = await axios.post("https://localhost:44397/api/Theater", {
-        name: theaterData.theaterName,
-        location: theaterData.location,
-      });
-      setOpen(false);
-    } catch (err) {
-      console.log(err);
+    let formDirty = false;
+
+    if (!theaterData.theaterName || !theaterData.theaterName.length) {
+      setNameError("Theater Name is required");
+      formDirty = true;
+    } else {
+      setNameError("");
     }
-    console.log(theaterData);
+    if (!theaterData.location || !theaterData.location.length) {
+      setLocationError("Theater Location is required");
+      formDirty = true;
+    } else {
+      setLocationError("");
+    }
+
+    if (!formDirty) {
+      try {
+        const res = await axios.post("https://localhost:44397/api/Theater", {
+          name: theaterData.theaterName,
+          location: theaterData.location,
+        });
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Theater has been added successfully",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        Navigate("/api/Theater");
+        setOpen(false);
+      } catch (err) {
+        console.log(err);
+      }
+      console.log(theaterData);
+      return true;
+    } else {
+      return false;
+    }
   };
 
   const discardTheater = (e) => {
@@ -80,6 +112,8 @@ export default function Theater() {
 
   const setData = (data) => {
     console.log(data);
+    // let { id, name, description } = data;
+    localStorage.setItem("theater", JSON.stringify(data));
   };
 
   const getData = () => {
@@ -89,11 +123,26 @@ export default function Theater() {
   };
 
   const onDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete?")) {
-      axios.delete(`https://localhost:44397/api/Theater/${id}`).then(() => {
-        getData();
-      });
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`https://localhost:44397/api/Theater/${id}`).then(() => {
+          getData();
+        });
+        Swal.fire({
+          title: "Deleted...!",
+          text: "Theater has been Deleted...!!",
+          icon: "success",
+        });
+      }
+    });
   };
 
   return (
@@ -129,6 +178,8 @@ export default function Theater() {
               value={theaterData.theaterName}
               onChange={onChangeInput}
               autoFocus
+              error={nameError && nameError.length ? true : false}
+              helperText={nameError}
             />
             <TextField
               margin="normal"
@@ -140,7 +191,9 @@ export default function Theater() {
               value={theaterData.location}
               onChange={onChangeInput}
               id="location"
-              autoComplete="current-password"
+              autoComplete="location"
+              error={locationError && locationError.length ? true : false}
+              helperText={locationError}
             />
             <Button
               onClick={addTheater}
@@ -181,8 +234,8 @@ export default function Theater() {
                 <Chip label={data.theater.location} variant="outlined" />
               </Stack>
 
-              <Link to="/department/update">
-                <Button onClick={() => setData(data)}>update</Button>
+              <Link to={`/admin/Theater/update?theaterId=${data.theater.id}`}>
+                <Button onClick={() => setData(data.theater)}>update</Button>
               </Link>
               <Button onClick={() => onDelete(data.theater.id)}>Delete</Button>
             </AccordionSummary>

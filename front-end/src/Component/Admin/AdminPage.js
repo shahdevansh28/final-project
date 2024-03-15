@@ -13,12 +13,13 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../NavBar";
 import AdminMainContent from "./AdminMainContent";
 import AdminSidePannel from "./AdminSidePannel";
-import { Grid } from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 export default function AdminPage() {
   return (
     <>
-      <AdminSidePannel/>
-      <AdminMainContent/>
+      <Stack direction="row" spacing={2} justifyContent="space-between">
+        <AdminSidePannel />
+      </Stack>
     </>
   );
 }

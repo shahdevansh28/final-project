@@ -11,6 +11,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Show from "./Show";
 import { useSearchParams } from "react-router-dom";
 import Session from "react-session-api";
+import { Stack, Typography } from "@mui/material";
 
 export default function ShowList(props) {
   const [date, setDate] = React.useState(dayjs(Date.now()));
@@ -40,33 +41,36 @@ export default function ShowList(props) {
   }
 
   const defaultTheme = createTheme();
+
   return (
-    <>
+    <Stack
+      direction="column"
+      sx={{ m: 7 }}
+      spacing={2}
+      justifyContent="space-between"
+    >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePicker
           label="Select Date"
           value={date}
           onChange={(newValue) => setDate(newValue)}
+          sx={{ width: 250 }}
         />
       </LocalizationProvider>
-      <ThemeProvider theme={defaultTheme}>
-        <Container sx={{ py: 8 }} maxWidth="md">
-          <Grid container spacing={8}>
-            {details.map((details) => (
-              <>
-                <Grid xs={12} sm={6} md={4}>
-                  <Show key={details.id} data={details} />
-                </Grid>
-              </>
-            ))}
+
+      <Grid container sx={{ my: 2 }} spacing={3}>
+        {details.length > 0 ? (
+          <Typography variant="h5">Theaters</Typography>
+        ) : (
+          <Typography variant="h5">Please Select Date</Typography>
+        )}
+
+        {details.map((details) => (
+          <Grid sx={{ mt: 5 }} xs={3}>
+            <Show key={details.id} data={details} />
           </Grid>
-        </Container>
-      </ThemeProvider>
-    </>
-    // <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }} cols = {3}>
-    //   {details.map((detail,key) => {
-    //     return <MoviePost data = {detail}/>;
-    //   })}
-    // </List>
+        ))}
+      </Grid>
+    </Stack>
   );
 }

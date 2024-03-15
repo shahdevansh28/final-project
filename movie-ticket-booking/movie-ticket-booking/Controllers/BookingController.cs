@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using movie_ticket_booking.Models;
 using movie_ticket_booking.Models.DTO;
+using Razorpay.Api;
+using System.Linq;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -36,13 +38,14 @@ namespace movie_ticket_booking.Controllers
 
         }
 
-        [Authorize]
+        /*[Authorize]
         [Route("api/getBookingByUser")]
         [HttpGet]
         public async Task<ActionResult<List<Booking>>> GetBookingByUser(string userId)
         {
             return await _applicationDbContext.Bookings.Where(x => x.UserId == userId).ToListAsync();
-        }
+        }*/
+
 
         [Authorize]
         [Route("api/book-ticket")]
@@ -50,19 +53,22 @@ namespace movie_ticket_booking.Controllers
         public async Task<ActionResult<Booking>> BookTicket(BookingDTO bookingDTO, string userId)
         {
             //Get All Seats based on current ShowTime
-            var TotalAvailableSeats =_applicationDbContext.Seats.Where(x => x.ShowTimeId == bookingDTO.showTimeId);
+            var TotalAvailableSeats = _applicationDbContext.Seats.Where(x => x.ShowTimeId == bookingDTO.showTimeId);
             double totalPrice = 0;
-            //Check Availablitly of seat based on provided row and number
-            //if it is available than consider that seat
-            //udapte seat database and mark IsAvailable prop as false for selected seat
-            //add new booked ticket to Booking table
-            //else show message "Seat is not Available"
             
+            var selectedBooking = new List<Booking>();
+       
+            //Genrate recipt number, which will be act as a forigen key to Order table
+            Random _random = new Random();
+            string TransactionID = _random.Next(0, 10000).ToString();
+
             foreach (var seat in bookingDTO.seatNumber)
             {
                 var selectedSeat = TotalAvailableSeats.Where(x => x.Row == seat.row && x.Number == seat.number).FirstOrDefault();
+
                 if (selectedSeat.IsAvailable == true)
                 {
+                    var amount = _applicationDbContext.ShowTimes.Where(x => x.Id == selectedSeat.ShowTimeId).FirstOrDefault().Amount;
                     selectedSeat.IsAvailable = false;
                     _applicationDbContext.Seats.Update(selectedSeat);
 
@@ -71,20 +77,113 @@ namespace movie_ticket_booking.Controllers
                         BookingDate = DateTime.Now,
                         SeatId = TotalAvailableSeats.Where(x => x.Row == seat.row && x.Number == seat.number).FirstOrDefault().Id,
                         ShowTimeId = bookingDTO.showTimeId,
-                        UserId = userId
+                        /*UserId = userId*/
+                        Receipt = TransactionID
                     };
-
-                    _applicationDbContext.Bookings.Add(bookedTicket);
-                    await _applicationDbContext.SaveChangesAsync();
-
-                    
+                    totalPrice += amount;
+                    selectedBooking.Add(bookedTicket);
+                   // _applicationDbContext.Bookings.Add(bookedTicket);
+                    //await _applicationDbContext.SaveChangesAsync();
                 }
                 else
                 {
-                    return Ok("Seat is not available" + seat.row.ToString() + seat.number.ToString());
+                    return Ok(new BookingResponseDTO() { selectedSeats = selectedBooking, TotalAmount = totalPrice, TransactionID = TransactionID, Message = "Seats are not available", Status = 201});
                 }
+
             }
-            return Ok("Seats are booked");
+
+            //create razorpay order
+            //get razorpay order id
+            //add into order table (id{PK},razorpayOrderID,Date,totalAmount,userId)
+
+            return Ok(new BookingResponseDTO() { selectedSeats = selectedBooking, TotalAmount = totalPrice, TransactionID = TransactionID, Message = "Seats are available, Do the Payment", Status = 200 });
+        }
+        //orderresponse,bookedTicket,bookingorder
+        [HttpPost]
+        [Route("/intitae-payment")]
+        public async Task<IActionResult> InitatePayment(OrderRequestDTO orderReqDTO, string userId)
+        {
+            string key = "rzp_test_MVtbvvIPLifFCR";
+            string secret = "uVUVh6FudJ2Mc6EKUoadsvxe";
+            
+            Dictionary<string, object> input = new Dictionary<string, object>
+            {
+                { "amount", Convert.ToDecimal(orderReqDTO.TotalAmount)*100 },
+                { "currency", "INR" },
+                { "receipt", orderReqDTO.TransactionID }
+            };
+
+            RazorpayClient client = new RazorpayClient(key, secret);
+            Order order = client.Order.Create(input);
+
+            //get razorpay order id
+            //add into order table (id{PK},razorpayOrderID,Date,totalAmount,userId)
+            BookingOrder bookingOrder = new BookingOrder()
+            {
+                RazorpayOrderID = order["id"],
+                OrderDate = DateTime.Now,
+                TotalAmount = orderReqDTO.TotalAmount,
+                Status = "Created",
+                Receipt = orderReqDTO.TransactionID,
+                RazorPayPaymentId = null,
+                UserId = userId
+            };
+            _applicationDbContext.BookingOrders.Add(bookingOrder);
+            await _applicationDbContext.SaveChangesAsync();
+
+            //razorpay order id,total amount, user id, status
+            /*string orderId = order["id"].ToString();*/
+            OrderResponseDTO orderResponseDTO = new OrderResponseDTO()
+            {
+                id = order["id"],
+                amount = order["amount"],
+                entity = order["entity"],
+                amount_paid = order["amount_paid"],
+                amount_due = order["amount_due"],
+                currency = order["currency"],
+                receipt = order["receipt"],
+                attempts = order["attempts"],
+                status = order["status"],
+                created_at = order["created_at"],
+                bookingOrder = bookingOrder
+            };
+            return Ok(orderResponseDTO);
+        }
+
+        [HttpPost]
+        [Route("/api/updateOnServer")]
+        public async Task<IActionResult> UpdateOnServer(BookingDetailDTO bookingDetailDTO)
+        {
+            var existingBookingOrder = _applicationDbContext.BookingOrders.Where(x => x.RazorpayOrderID == bookingDetailDTO.razorpay_order_id).FirstOrDefault();
+
+            if (existingBookingOrder == null)
+            {
+                return BadRequest();
+                //Order is not generated
+            }
+            else
+            {
+                //Updated existing booking order with paymentID and status
+                existingBookingOrder.RazorPayPaymentId = bookingDetailDTO.razorpay_payment_id;
+                existingBookingOrder.Status = bookingDetailDTO.status;
+                //existingBookingOrder.Receipt = bookingDetailDTO.selectedSeats.FirstOrDefault().Receipt;
+                _applicationDbContext.BookingOrders.Update(existingBookingOrder);
+                await _applicationDbContext.SaveChangesAsync();
+
+                //Add selectedSetas into Booking table
+                foreach(var selectedSeat in bookingDetailDTO.selectedSeats)
+                {
+                    var seatToMark = _applicationDbContext.Seats.Where(x => x.Id == selectedSeat.SeatId).FirstOrDefault();
+                    seatToMark.IsAvailable = false;
+                    _applicationDbContext.Seats.Update(seatToMark);
+                    await _applicationDbContext.SaveChangesAsync();
+                }
+                _applicationDbContext.Bookings.AddRange(bookingDetailDTO.selectedSeats);
+                await _applicationDbContext.SaveChangesAsync();
+
+                return Ok("Everything is done");
+            }
+            return Ok();
         }
 
     }

@@ -21,7 +21,7 @@ namespace movie_ticket_booking.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Movie>>> GetMovies()
         {
-            if(_applicationDbContext.Movies == null)
+            if (_applicationDbContext.Movies == null)
             {
                 return NotFound();
             }
@@ -31,33 +31,32 @@ namespace movie_ticket_booking.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Movie>> GetMovie(long id)
         {
-            if(_applicationDbContext.Movies == null)
+            if (_applicationDbContext.Movies == null)
             {
                 return NotFound();
             }
             var movie = _applicationDbContext.Movies.Find(id);
-            if(movie == null)
+            if (movie == null)
             {
                 return NotFound();
             }
             return movie;
         }
-
-        [HttpPost]
-        public async Task<ActionResult<Movie>> PostMovie(Movie movie)
+        [HttpGet]
+        [Route("api/get-movieByshow")]
+        public async Task<ActionResult<Movie>> GetMovieByShowTime(long showTimeId)
         {
-            if (_applicationDbContext.Movies == null)
+            if (_applicationDbContext.ShowTimes == null)
             {
                 return NotFound();
             }
-            _applicationDbContext.Add(movie);
-            await _applicationDbContext.SaveChangesAsync();
-
-            return CreatedAtAction("GetMovie", new { id = movie.Id }, movie);
+            var showTime = _applicationDbContext.ShowTimes.Where(x => x.Id == showTimeId).FirstOrDefault();
+            var movie = await _applicationDbContext.Movies.Where(x => x.Id == showTime.MovieId).FirstOrDefaultAsync();
+            return movie;
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMovie(long id, MovieDTO movie)
+        public async Task<IActionResult> PutMovie(long id, Movie movie)
         {
             if (id != movie.Id)
             {
@@ -84,6 +83,20 @@ namespace movie_ticket_booking.Controllers
 
             return NoContent();
         }
+        [HttpPost]
+        public async Task<ActionResult<Movie>> PostMovie(Movie movie)
+        {
+            if (_applicationDbContext.Movies == null)
+            {
+                return NotFound();
+            }
+            _applicationDbContext.Add(movie);
+            await _applicationDbContext.SaveChangesAsync();
+
+            return CreatedAtAction("GetMovie", new { id = movie.Id }, movie);
+        }
+
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(long id)
         {

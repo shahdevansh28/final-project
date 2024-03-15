@@ -11,4 +11,13 @@
         public List<SeatNumber> seatNumber { get; set; }
         public DateTime bookingDate { get; set; }
     }
+
+    public class BookingResponseDTO
+    {
+        public List<Booking> selectedSeats { get; set; }
+        public int Status { get; set; }
+        public string Message { get; set; }
+        public double TotalAmount { get; set; }
+        public string TransactionID { get; set; }
+    }
 }

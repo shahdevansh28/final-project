@@ -51,7 +51,7 @@ namespace movie_ticket_booking.Controllers
                         Row = i,
                         Number = j,
                         ShowTimeId = seatDetail.ShowTimeID,
-                        IsAvailable = false
+                        IsAvailable = true
                     };
                     _applicationDbContext.Add(seatObj);
                 }

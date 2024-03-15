@@ -247,3 +247,14 @@ D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\obj\Debug\
 D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\obj\Debug\net7.0\movie-ticket-booking.pdb
 D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\obj\Debug\net7.0\movie-ticket-booking.genruntimeconfig.cache
 D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\obj\Debug\net7.0\ref\movie-ticket-booking.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\BouncyCastle.Cryptography.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\MailKit.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\MimeKit.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\System.Formats.Asn1.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\System.Security.Cryptography.Pkcs.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\System.Text.Encoding.CodePages.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Security.Cryptography.Pkcs.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Text.Encoding.CodePages.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\Newtonsoft.Json.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\BouncyCastle.Crypto.dll
+D:\Semester-8\final-project\movie-ticket-booking\movie-ticket-booking\bin\Debug\net7.0\Razorpay.dll

@@ -23,12 +23,18 @@ import {
   Grid,
   Checkbox,
 } from "@mui/material";
+import Swal from "sweetalert2";
 
 export default function Movie() {
   const [detail, setDetail] = useState([]);
   const [movieData, setMovieData] = useState({});
+
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState(dayjs(Date.now()));
+  //Validate
+  const [nameError, setNameError] = useState("");
+  const [dateError, setDateError] = useState("");
+  const [durationError, setDurationError] = useState("");
 
   const d = date.$y + "-" + (date.$M + 1) + "-" + date.$D;
   const handleClickOpen = () => {
@@ -51,16 +57,59 @@ export default function Movie() {
   };
 
   const addMovie = async (e) => {
-    try {
-      const res = await axios.post("https://localhost:44397/api/Movie", {
-        title: movieData.movieName,
-        release_Date: new Date(date).toISOString(),
-        duration: movieData.duration,
-      });
-      setOpen(false);
-    } catch (err) {
-      console.log(err);
+    const movieName = movieData.movieName;
+    const duration = movieData.duration;
+    const releaseDate = date;
+
+    //First do validaiton of form
+    let formDirty = false;
+
+    if (!movieName || !movieName.length) {
+      setNameError("Movie Name is required");
+      formDirty = true;
+    } else {
+      setNameError("");
     }
+    if (!duration || !duration.length) {
+      setDurationError("Movie duration is required");
+      formDirty = true;
+    } else {
+      let regex = /^\d+$/;
+      let durationresult = regex.test(duration);
+      if (durationresult) {
+        setDurationError("");
+      } else {
+        setDurationError("Please enter numbers only");
+        formDirty = true;
+      }
+    }
+
+    console.log(formDirty);
+    if (!formDirty) {
+      try {
+        const res = await axios.post("https://localhost:44397/api/Movie", {
+          title: movieData.movieName,
+          release_Date: new Date(date).toISOString(),
+          duration: movieData.duration,
+        });
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Movie has been added successfully",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+
+        console.log(res);
+        setOpen(false);
+      } catch (err) {
+        console.log(err);
+      }
+      return true;
+    } else {
+      return false;
+    }
+
     console.log(movieData);
   };
   const discardMovie = (e) => {};
@@ -72,14 +121,14 @@ export default function Movie() {
     });
   }, []);
 
-
   console.log(new Date(date).toISOString());
-
 
   const setData = (data) => {
     console.log(data);
-    let { id, name, description } = data;
+    // let { id, name, description } = data;
+    localStorage.setItem("movie", JSON.stringify(data));
   };
+
   const getData = () => {
     axios.get("https://localhost:44397/api/Movie").then((getData) => {
       setDetail(getData.data);
@@ -87,12 +136,28 @@ export default function Movie() {
   };
 
   const onDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete?")) {
-      axios.delete(`https://localhost:44397/api/Movie/${id}`).then(() => {
-        getData();
-      });
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`https://localhost:44397/api/Movie/${id}`).then(() => {
+          getData();
+        });
+        Swal.fire({
+          title: "Deleted...!",
+          text: "Movie has been Deleted...!!",
+          icon: "success",
+        });
+      }
+    });
   };
+
   console.log(detail.forEach((data) => console.log(data.id)));
   return (
     <div sx={{ flexGrow: 1, bgcolor: "background.default", p: 2 }}>
@@ -101,6 +166,8 @@ export default function Movie() {
       <Button variant="outlined" onClick={handleClickOpen}>
         Create
       </Button>
+
+      {/* Form to add movie data */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -128,6 +195,8 @@ export default function Movie() {
               value={movieData.theaterName}
               onChange={onChangeInput}
               autoFocus
+              error={nameError && nameError.length ? true : false}
+              helperText={nameError}
             />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -137,6 +206,8 @@ export default function Movie() {
                 value={date}
                 minDate={dayjs()}
                 onChange={(newValue) => setDate(newValue)}
+                error={dateError && dateError.length ? true : false}
+                helperText={dateError}
               />
             </LocalizationProvider>
 
@@ -144,7 +215,6 @@ export default function Movie() {
               margin="normal"
               required
               fullWidth
-              type="number"
               id="duration"
               label="Duration (in mins)"
               name="duration"
@@ -152,6 +222,8 @@ export default function Movie() {
               value={movieData.duration}
               onChange={onChangeInput}
               autoFocus
+              error={durationError && durationError.length ? true : false}
+              helperText={durationError}
             />
 
             <Button
@@ -195,10 +267,10 @@ export default function Movie() {
                 <TableCell>{data.id}</TableCell>
                 <TableCell>{data.title}</TableCell>
                 <TableCell>
-                  {console.log(new Date(data.release_date))}
+                  {new Date(data.release_Date).toDateString()}
                 </TableCell>
                 <TableCell>{data.duration} Mins</TableCell>
-                <Link to="/department/update">
+                <Link to={`/admin/Movies/update?movieId=${data.id}`}>
                   <TableCell>
                     <Button onClick={() => setData(data)}>update</Button>
                   </TableCell>

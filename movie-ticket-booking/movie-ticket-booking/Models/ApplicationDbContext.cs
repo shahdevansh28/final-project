@@ -15,5 +15,6 @@ namespace movie_ticket_booking.Models
         public DbSet<ShowTime> ShowTimes { get; set; }
         public DbSet<Theater> Theaters { get; set; }
         public DbSet<Booking> Bookings {  get; set; }
+        public DbSet<BookingOrder> BookingOrders { get; set; }
     }
 }

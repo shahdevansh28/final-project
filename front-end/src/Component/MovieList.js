@@ -20,6 +20,7 @@ import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { Margin } from "@mui/icons-material";
 
 export default function MovieList() {
   const [details, setDetail] = useState([]);
@@ -30,24 +31,25 @@ export default function MovieList() {
     });
   }, []);
 
-  const defaultTheme = createTheme({
-    columnSpacing: 8,
-  });
+  // const defaultTheme = createTheme({
+  //   columnSpacing: 8,
+  // });
   return (
     <>
-      <ThemeProvider theme={defaultTheme}>
-        <Container sx={{ py: 8 }} maxWidth="md">
-          <Grid container>
-            {details.map((detail) => (
-              <>
-                <Grid xs={12} sm={6} md={4}>
-                  <MoviePost data={detail} />
-                </Grid>
-              </>
-            ))}
-          </Grid>
-        </Container>
-      </ThemeProvider>
+      {/* <ThemeProvider theme={defaultTheme}> */}
+      <Container>
+        <Typography variant="h5">Movie List</Typography>
+        <Grid container sx={{ my: 2 }} spacing={4}>
+          {details.map((detail) => (
+            <>
+              <Grid item xs={3}>
+                <MoviePost data={detail} />
+              </Grid>
+            </>
+          ))}
+        </Grid>
+      </Container>
+      {/* </ThemeProvider> */}
     </>
   );
 }

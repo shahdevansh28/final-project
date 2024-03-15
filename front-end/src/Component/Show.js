@@ -35,10 +35,6 @@ export default function Show(props) {
           {/* {props.data} */}
         </Typography>
       </CardContent>
-      <CardActions>
-        <Button size="small">Share</Button>
-        <Button size="small">Learn More</Button>
-      </CardActions>
     </Card>
   );
 }

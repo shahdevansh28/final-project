@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using movie_ticket_booking.Models;
 using movie_ticket_booking.Models.DTO;
+using movie_ticket_booking.Models.EmailService;
+using movie_ticket_booking.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -19,17 +21,102 @@ namespace movie_ticket_booking.Controllers
         private readonly UserManager<User> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly IConfiguration configuration;
+        private readonly IMailService mailService;
 
-        public AuthController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public AuthController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, IMailService mailService)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.configuration = configuration;
+            this.mailService = mailService;
+        }
+
+        
+        [HttpGet]
+        [Route("getUser")]
+        public async Task<ActionResult<User>> GetUser(string userId)
+        {
+            return await userManager.FindByIdAsync(userId);
         }
 
         [HttpPost]
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
+        {
+            var userExist = await userManager.FindByNameAsync(model.Username);
+            if (userExist != null)
+                return StatusCode(StatusCodes.Status409Conflict, new Models.DTO.Response() { Status = "Error", Message = "User Already Exist" });
+
+            User user = new User()
+            {
+                Email = model.Email,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = model.Username
+            };
+
+            var result = await userManager.CreateAsync(user, model.Password);
+            
+            if (!result.Succeeded)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Models.DTO.Response() { Status = "Error", Message = "User creatiion Failed" });
+            }
+
+            if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
+                await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+            if (!await roleManager.RoleExistsAsync(UserRoles.User))
+                await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+
+            if (await roleManager.RoleExistsAsync(UserRoles.User))
+                await userManager.AddToRoleAsync(user,UserRoles.User);
+
+
+            //generate verification code
+            Random verificationCode = new Random();
+            int code = verificationCode.Next(10000000, 99999999);
+
+            //send an email with verification code
+            MailRequest mailRequest = new MailRequest();
+            mailRequest.ToEmail = user.Email;
+            mailRequest.Subject = "Verification Code";
+            mailRequest.Body = "Your verification code is " + user.SecurityStamp[..8];
+
+            await mailService.SendEmailAsync(mailRequest);
+
+            return Ok(new Models.DTO.RegisterResponseDTO() { Email = user.Email, Status = "200" });
+        }
+
+        [HttpPost]
+        [Route("verify-code")]
+        public async Task<IActionResult> VerifyCode([FromBody]VerificationCodeDTO verificationCodeDTO)
+        {
+            //Application password for gmail :- imnd bbkj jpjp zgqs
+
+            var userExist = await userManager.FindByEmailAsync(verificationCodeDTO.mail);
+            if (userExist != null)
+            {
+                //if verification code matches
+                if (verificationCodeDTO.codeByUser.Equals(userExist.SecurityStamp[..8]))
+                {
+                    return Ok( new Models.DTO.Response() { Status = "Succes", Message = "User created Succesfully" });
+
+                }
+                else
+                {
+                    await userManager.DeleteAsync(userExist);
+                    return StatusCode(StatusCodes.Status409Conflict, new Models.DTO.Response() { Status = "Failed", Message = "Verification code is not matched" });
+                }
+
+                //than send success code
+                //else delete user 
+                //send rejection code
+            }
+            return Ok("Some Problem");
+            
+        }
+
+        [HttpPost]
+        [Route("RegisterAdmin")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterDTO model)
         {
             var userExist = await userManager.FindByNameAsync(model.Username);
             if (userExist != null)
@@ -53,8 +140,8 @@ namespace movie_ticket_booking.Controllers
             if (!await roleManager.RoleExistsAsync(UserRoles.User))
                 await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
 
-            if (await roleManager.RoleExistsAsync(UserRoles.User))
-                await userManager.AddToRoleAsync(user,UserRoles.User);
+            if (await roleManager.RoleExistsAsync(UserRoles.Admin))
+                await userManager.AddToRoleAsync(user, UserRoles.Admin);
 
             return Ok(new Models.DTO.Response() { Status = "Succes", Message = "User created Succesfully" });
         }

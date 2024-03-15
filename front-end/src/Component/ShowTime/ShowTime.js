@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@mui/material";
 import dayjs from "dayjs";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -26,26 +26,32 @@ import {
   Grid,
   Checkbox,
 } from "@mui/material";
+import Swal from "sweetalert2";
 
 export default function ShowTime() {
   const [detail, setDetail] = useState([]);
   const [showtimeData, setShowtimeData] = useState({});
   const [open, setOpen] = React.useState(false);
-
+  //For Date and Time
   const [showDate, setShowDate] = useState(dayjs(Date.now()));
   const [startTime, setStartTime] = useState(dayjs(Date.now()));
   const [endTime, setEndTime] = useState(dayjs(Date.now()));
-
+  //
   const [movieName, setMovieName] = useState([]);
   const [theaterName, setTheaterName] = useState([]);
-  //   const d = date.$y + "-" + (date.$M + 1) + "-" + date.$D;
-
+  //   const d = date.$y + "-" + (date.$M + 1) + "-" + date.$D
+  //For validation
+  const [amountError, setAmountError] = useState("");
+  const [capacityError, setCapacityError] = useState("");
+  const [movieError, setMovieError] = useState("");
+  const [theaterError, setTheaterError] = useState("");
+  //Fetches list of movies
   useEffect(() => {
     axios.get("https://localhost:44397/api/Movie").then((response) => {
       setMovieName(response.data);
     });
   }, []);
-
+  //Fetches list of theaters
   useEffect(() => {
     axios.get("https://localhost:44397/api/Theater").then((response) => {
       console.log(response.data);
@@ -72,25 +78,69 @@ export default function ShowTime() {
     setShowtimeData({ ...showtimeData, [name]: value });
   };
 
+  //function to add ShowTime
   const addShowTime = async (e) => {
-    try {
-      const res = await axios.post("https://localhost:44397/api/ShowTime", {
-        showDate: new Date(showDate).toISOString(),
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
-        amount: showtimeData.amount,
-        capacity: showtimeData.capacity,
-        movieId: showtimeData.movieId,
-        theaterId: showtimeData.theaterId,
-      });
-      setOpen(false);
-    } catch (err) {
-      console.log(err);
+    let formDirty = false;
+
+    if (!showtimeData.amount || !showtimeData.amount.length) {
+      setAmountError("Enter Amount");
+      formDirty = true;
+    } else {
+      let regex = /^\d+$/;
+      let amountRes = regex.test(showtimeData.amount);
+      if (amountRes) {
+        setAmountError("");
+      } else {
+        setAmountError("Please enter numbers only");
+        formDirty = true;
+      }
     }
-    console.log(showtimeData);
+    if (!showtimeData.capacity || !showtimeData.capacity.length) {
+      setCapacityError("Enter Seating Capacity");
+      formDirty = true;
+    } else {
+      let regex = /^\d+$/;
+      let capacityRes = regex.test(showtimeData.capacity);
+      if (capacityRes) {
+        setCapacityError("");
+      } else {
+        setCapacityError("Please enter numbers only");
+        formDirty = true;
+      }
+    }
+
+    if (!formDirty) {
+      try {
+        const res = await axios.post("https://localhost:44397/api/ShowTime", {
+          showDate: new Date(showDate).toISOString(),
+          startTime: new Date(startTime).toISOString(),
+          endTime: new Date(endTime).toISOString(),
+          amount: showtimeData.amount,
+          capacity: showtimeData.capacity,
+          movieId: showtimeData.movieId,
+          theaterId: showtimeData.theaterId,
+        });
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Showdate has been added successfully",
+          showConfirmButton: false,
+          timer: 2500,
+        });
+        Navigate("/admin/ShowTime");
+        setOpen(false);
+      } catch (err) {
+        console.log(err);
+      }
+      console.log(showtimeData);
+      return true;
+    } else {
+      return false;
+    }
   };
   const discardShowTime = (e) => {};
 
+  //Fetches List of ShowTime
   useEffect(() => {
     axios.get("https://localhost:44397/api/ShowTime").then((response) => {
       console.log(response.data);
@@ -102,6 +152,7 @@ export default function ShowTime() {
 
   const setData = (data) => {
     console.log(data);
+    localStorage.setItem("showTime", JSON.stringify(data));
     let { id, name, description } = data;
   };
   const getData = () => {
@@ -111,11 +162,26 @@ export default function ShowTime() {
   };
 
   const onDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete?")) {
-      axios.delete(`https://localhost:44397/api/ShowTime/${id}`).then(() => {
-        getData();
-      });
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.delete(`https://localhost:44397/api/ShowTime/${id}`).then(() => {
+          getData();
+        });
+        Swal.fire({
+          title: "Deleted...!",
+          text: "Movie has been Deleted...!!",
+          icon: "success",
+        });
+      }
+    });
   };
   console.log(detail.forEach((data) => console.log(data.id)));
   return (
@@ -125,6 +191,7 @@ export default function ShowTime() {
       <Button variant="outlined" onClick={handleClickOpen}>
         Create
       </Button>
+      {/* Form to add ShowTime */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -141,6 +208,7 @@ export default function ShowTime() {
             noValidate
             sx={{ mt: 1 }}
           >
+            {/* Date */}
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 required
@@ -173,17 +241,19 @@ export default function ShowTime() {
                 onChange={(newValue) => setEndTime(newValue)}
               />
             </LocalizationProvider>
+            {/*  */}
             <TextField
               margin="normal"
               required
               fullWidth
               name="amount"
               label="Amount"
-              type="number"
-              value={showtimeData.location}
+              value={showtimeData.amount}
               onChange={onChangeInput}
               id="amount"
               autoComplete="amount"
+              error={amountError && amountError.length ? true : false}
+              helperText={amountError}
             />
             <TextField
               margin="capacity"
@@ -191,11 +261,12 @@ export default function ShowTime() {
               fullWidth
               name="capacity"
               label="Capacity"
-              type="number"
-              value={showtimeData.location}
+              value={showtimeData.capacity}
               onChange={onChangeInput}
               id="capacity"
               autoComplete="capacity"
+              error={capacityError && capacityError.length ? true : false}
+              helperText={capacityError}
             />
 
             <InputLabel id="movie-name">Select Movie</InputLabel>
@@ -277,8 +348,10 @@ export default function ShowTime() {
             return (
               <TableRow>
                 <TableCell>{data.id}</TableCell>
-                <TableCell>{data.movieId}</TableCell>
-                <TableCell>{data.theaterId}</TableCell>
+                <TableCell>{data.movie.title}</TableCell>
+                <TableCell>
+                  {data.theater.name}, {data.theater.location}
+                </TableCell>
                 <TableCell>Rs. {data.amount}</TableCell>
                 <TableCell>{data.capacity} Seats</TableCell>
                 <TableCell>{new Date(data.showDate).toDateString()}</TableCell>
@@ -288,7 +361,7 @@ export default function ShowTime() {
                 <TableCell>
                   {new Date(data.endTime).toLocaleTimeString()}
                 </TableCell>
-                <Link to="/department/update">
+                <Link to={`/admin/ShowTime/update?showTime=${data.id}`}>
                   <TableCell>
                     <Button onClick={() => setData(data)}>update</Button>
                   </TableCell>

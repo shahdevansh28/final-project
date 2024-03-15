@@ -34,7 +34,7 @@ export default function Footer() {
               Contact Us
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              123 Main Street, Anytown, USA
+              
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Email: info@example.com

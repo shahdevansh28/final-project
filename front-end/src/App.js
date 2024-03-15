@@ -16,6 +16,14 @@ import AdminSidePannel from "./Component/Admin/AdminSidePannel";
 import Movie from "./Component/Movie/Movie";
 import ShowTime from "./Component/ShowTime/ShowTime";
 import SeatLayoutAdmin from "./Component/SeatLayout/SeatLayoutAdmin";
+import CreateAdmin from "./Component/Admin/CreateAdmin";
+import UpdateMovie from "./Component/Movie/UpdateMovie";
+import Bookings from "./Component/Bookings/Bookings";
+import UserProfile from "./Component/Users/UserProfile";
+import UpdateTheater from "./Component/Theater/UpdateTheater";
+import VerificationCode from "./Component/VerificationCode";
+import UpdateShowTime from "./Component/ShowTime/UpdateShowTime";
+
 function App() {
   return (
     <BrowserRouter>
@@ -26,16 +34,23 @@ function App() {
           <Route path="theaters" element={<MovieList />} />
           <Route path="login" element={<SignIn />} />
           <Route path="register" element={<SignUp />} />
+          <Route path="verify-code" element={<VerificationCode />} />
           <Route path="showlist" element={<ShowList />} />
           <Route path="seatLayout" element={<SeatLayout />} />
           <Route path="confirm-booking" element={<ConfirmationPage />} />
-
+          <Route path="Profile" element={<UserProfile />} />
           <Route path="admin" element={<AdminPage />}>
-            <Route index element={<AdminMainContent />}/>
+            <Route index element={<AdminMainContent />} />
             <Route path="Theater" element={<Theater />} />
-            <Route path="Movies" element={<Movie/>} />
-            <Route path="ShowTime" element={<ShowTime/>} />
-            <Route path="SeatLayout" element={<SeatLayoutAdmin/>} />
+            <Route path="Theater/update" element={<UpdateTheater />} />
+            <Route path="Movies" element={<Movie />} />
+            <Route path="Movies/update" element={<UpdateMovie />} />
+            <Route path="ShowTime" element={<ShowTime />} />
+            <Route path="ShowTime/update" element={<UpdateShowTime />} />
+            <Route path="SeatLayout" element={<SeatLayoutAdmin />} />
+            <Route path="Create-Admin" element={<CreateAdmin />} />
+            <Route path="Bookings" element={<Bookings />} />
+            <Route path="My-Profile" element={<UserProfile />} />
           </Route>
         </Route>
       </Routes>

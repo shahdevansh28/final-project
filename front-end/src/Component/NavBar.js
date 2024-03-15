@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Link } from "react-router-dom";
+import { Link, redirect } from "react-router-dom";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -24,7 +24,14 @@ export default function NavBar() {
     setAnchorEl(event.currentTarget);
   };
   const handleLogout = () => {
+    redirect("/");
     Cookies.remove("token");
+
+    setAnchorEl(null);
+  };
+
+  const handleProfile = () => {
+    redirect("/Profile");
     setAnchorEl(null);
   };
 
@@ -36,7 +43,7 @@ export default function NavBar() {
     <Grid container>
       <Grid item xs={12}>
         <Box sx={{ flexGrow: 1 }}>
-          <AppBar position="static">
+          <AppBar position="static" color="primary">
             <Toolbar>
               <IconButton
                 size="large"
@@ -47,8 +54,8 @@ export default function NavBar() {
               >
                 <MenuIcon />
               </IconButton>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                <Link to="/">Book-Your-Show</Link>
+              <Typography color="inherit" variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                <Link  color="inherit" to="/">Book-Your-Show</Link>
               </Typography>
               <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
                 {pages.map((page) => (
@@ -62,6 +69,9 @@ export default function NavBar() {
               </Box>
               {auth ? (
                 <div>
+                  <Link to="/Profile">
+                    <Button color="secondary">Profile</Button>
+                  </Link>
                   <IconButton
                     size="large"
                     aria-label="account of current user"
@@ -87,8 +97,7 @@ export default function NavBar() {
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                   >
-                    <MenuItem onClick={handleClose}>Profile</MenuItem>
-                    <MenuItem onClick={handleClose}>My account</MenuItem>
+                    <MenuItem onClick={handleProfile}>Profile</MenuItem>
                     <MenuItem onClick={handleLogout}>Logout</MenuItem>
                   </Menu>
                 </div>

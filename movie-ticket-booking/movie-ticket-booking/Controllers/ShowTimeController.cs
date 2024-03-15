@@ -25,7 +25,13 @@ namespace movie_ticket_booking.Controllers
             {
                 return NotFound();
             }
-            return await _applicationDbContext.ShowTimes.ToListAsync();
+            List<ShowTime> showTimes = _applicationDbContext.ShowTimes.ToList();
+            foreach(var showTime in showTimes)
+            {
+                showTime.Theater = _applicationDbContext.Theaters.Where(x => x.Id == showTime.TheaterId).FirstOrDefault();
+                showTime.Movie = _applicationDbContext.Movies.Where(x => x.Id == showTime.MovieId).FirstOrDefault();
+            }
+            return showTimes;
         }
         [HttpGet]
         [Route("get-showtime-by-movie")]

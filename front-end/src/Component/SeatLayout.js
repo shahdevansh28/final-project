@@ -5,13 +5,14 @@ import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Seat from "./Seat";
-import { Button } from "@mui/material";
+import { Button, Divider } from "@mui/material";
 import { Link } from "react-router-dom";
 import Session from "react-session-api";
 
 export default function SeatLayout() {
   const [details, setDetail] = useState([]);
   const [seatData, setSeatData] = useState([]);
+  const [rows, setRows] = useState(0);
 
   const queryParameters = new URLSearchParams(window.location.search);
   const id = queryParameters.get("showId");
@@ -49,8 +50,9 @@ export default function SeatLayout() {
         <Grid container>
           {details.map((detail) => (
             <>
-              <Grid xs={12} sm={6} md={4}>
+              <Grid xs={8} sm={6} md={4}>
                 <Seat data={detail} sendData={sendData} />
+                <Divider sx={{ opacity: 1 }} />
               </Grid>
             </>
           ))}

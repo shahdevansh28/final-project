@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using movie_ticket_booking.Models;
+using movie_ticket_booking.Models.EmailService;
+using movie_ticket_booking.Services;
 using System;
 using System.Text;
 
@@ -13,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+builder.Services.AddTransient<IMailService, MailService>();
 
 //EntityFrameWork Connection String Configuration
 builder.Services.AddDbContextPool<ApplicationDbContext>(opt =>
